@@ -1,9 +1,15 @@
 const submitButton = document.getElementById("submit");
 const userInput = document.getElementById("userInput");
 const weatherResults = document.getElementById("results");
+const searchForm = document.getElementById('searchForm');
 
-submitButton.addEventListener('click', async () => {
-    const city = userInput.value;
+searchForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const city = userInput.value.trim();
+    if (!city) {
+        weatherResults.textContent = 'Please enter a city.';
+        return;
+    }
     const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1`;
     try {
         submitButton.disabled = true; 
@@ -26,6 +32,7 @@ submitButton.addEventListener('click', async () => {
     } finally {
         submitButton.textContent = "Enter"
         submitButton.disabled = false; 
+        searchForm.reset();
     }
     
     
@@ -34,6 +41,9 @@ submitButton.addEventListener('click', async () => {
 async function getTemps(lat, long) {
     const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${long}&current=temperature_2m,weather_code&temperature_unit=fahrenheit`;
     const weatherResponse = await fetch(weatherUrl);
+    if (!weatherResponse.ok) {
+        throw new Error(`Weather request failed: ${weatherResponse.status}`);
+    }
     const weatherData = await weatherResponse.json();
     return weatherData.current.temperature_2m;
    
